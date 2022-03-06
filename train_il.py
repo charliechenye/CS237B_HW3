@@ -86,7 +86,12 @@ def nn(data, args):
         # 3. Based on the loss calculate the gradient for all weights
         # 4. Run an optimization step on the weights.
         # Helpful Functions: tf.GradientTape(), tf.GradientTape.gradient(), tf.keras.Optimizer.apply_gradients
+        with tf.GradientTape() as tape:
+            y_est = nn_model(x)
+            current_loss = loss(y_est, y)
 
+        grads = tape.gradient(current_loss, nn_model.trainable_variables)
+        optimizer.apply_gradients(zip(grads, nn_model.trainable_variables))
         ########## Your code ends here ##########
 
         train_loss(current_loss)
