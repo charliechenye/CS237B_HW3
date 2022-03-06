@@ -21,13 +21,13 @@ class NN(tf.keras.Model):
         self.in_size = in_size
         self.out_size = out_size
 
-        self.fc1 = tfk.layers.Dense(64, activation="relu", kernel_initializer="he_normal")
-        self.fc2 = tfk.layers.Dense(64, activation="relu", kernel_initializer="he_normal")
-        self.fc3 = tfk.layers.Dense(128, activation="relu", kernel_initializer="he_normal")
-        self.fc4 = tfk.layers.Dense(128, activation="relu", kernel_initializer="he_normal")
-        self.fc5 = tfk.layers.Dense(256, activation="relu", kernel_initializer="he_normal")
-        self.fc6 = tfk.layers.Dense(256, activation="relu", kernel_initializer="he_normal")
-        self.fc7 = tfk.layers.Dense(out_size)
+        self.fc1 = tf.keras.layers.Dense(64, activation="relu", kernel_initializer="he_normal")
+        self.fc2 = tf.keras.layers.Dense(64, activation="relu", kernel_initializer="he_normal")
+        self.fc3 = tf.keras.layers.Dense(128, activation="relu", kernel_initializer="he_normal")
+        self.fc4 = tf.keras.layers.Dense(128, activation="relu", kernel_initializer="he_normal")
+        self.fc5 = tf.keras.layers.Dense(256, activation="relu", kernel_initializer="he_normal")
+        self.fc6 = tf.keras.layers.Dense(256, activation="relu", kernel_initializer="he_normal")
+        self.fc7 = tf.keras.layers.Dense(out_size)
         ########## Your code ends here ##########
 
     def call(self, x):
