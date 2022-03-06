@@ -1,6 +1,7 @@
 import numpy as np
 import tensorflow as tf
 from tensorflow_probability import distributions as tfd
+from tensorflow_probability import bijectors as tfb
 import argparse
 from utils import *
 
@@ -13,13 +14,22 @@ class NN(tf.keras.Model):
         ######### Your code starts here #########
         # We want to define and initialize the weights & biases of the neural network.
         # - in_size is dim(O)
-        # - out_size is dim(A) = 2
+        # - out_size is dim(A)**2 + dim(A) = 6
         # IMPORTANT: out_size is still 2 in this case, because the action space is 2-dimensional. But your network will output some other size as it is outputing a distribution!
         # HINT: You should use either of the following for weight initialization:
         #         - tf.keras.initializers.GlorotUniform (this is what we tried)
         #         - tf.keras.initializers.GlorotNormal
         #         - tf.keras.initializers.he_uniform or tf.keras.initializers.he_normal
-        
+
+        tril_size = int((out_size + 1) * out_size / 2)
+
+        self.fc1 = tf.keras.layers.Dense(64, activation="elu", kernel_initializer="glorot_normal")
+        self.fc2 = tf.keras.layers.Dense(64, activation="elu", kernel_initializer="glorot_normal")
+        self.fc3 = tf.keras.layers.Dense(128, activation="elu", kernel_initializer="glorot_normal")
+        self.fc4 = tf.keras.layers.Dense(128, activation="elu", kernel_initializer="glorot_normal")
+        self.fc5 = tf.keras.layers.Dense(256, activation="elu", kernel_initializer="glorot_normal")
+        self.fc6 = tf.keras.layers.Dense(256, activation="elu", kernel_initializer="glorot_normal")
+        self.fc7 = tf.keras.layers.Dense(out_size + tril_size, kernel_initializer=tfk.initializers.random_normal(stddev=1e-3))
         
         
         ########## Your code ends here ##########
@@ -31,7 +41,15 @@ class NN(tf.keras.Model):
         # x is a (?, |O|) tensor that keeps a batch of observations
         # IMPORTANT: First two columns of the output tensor must correspond to the mean vector!
         
-        
+        x = self.fc1(x)
+        x = self.fc2(x)
+        x = self.fc3(x)
+        x = self.fc4(x)
+        x = self.fc5(x)
+        x = self.fc6(x)
+        x = self.fc7(x)
+
+        return x
         
         ########## Your code ends here ##########
 
@@ -47,7 +65,12 @@ def loss(y_est, y):
     # HINT: You may find the classes of tensorflow_probability.distributions (imported as tfd) useful.
     #       In particular, you can use MultivariateNormalFullCovariance or MultivariateNormalTriL, but they are not the only way.
     
-    
+    mu = y_est[:, :2]
+    tril_flat = y_est[:, 2:]
+    tril = tfb.FillScaleTriL().forward(tril_flat)
+
+    dist = tfd.MultivariateNormalTriL(mu, tril)
+    return tf.reduce_mean(-dist.log_prob(y))
     
     ########## Your code ends here ##########
 
@@ -79,7 +102,12 @@ def nn(data, args):
         # 4. Run an optimization step on the weights.
         # Helpful Functions: tf.GradientTape(), tf.GradientTape.gradient(), tf.keras.Optimizer.apply_gradients
        
-       
+        with tf.GradientTape() as tape:
+            y_est = nn_model(x)
+            current_loss = loss(y_est, y)
+
+        grads = tape.gradient(current_loss, nn_model.trainable_variables)
+        optimizer.apply_gradients(zip(grads, nn_model.trainable_variables))
        
         ########## Your code ends here ##########
 
