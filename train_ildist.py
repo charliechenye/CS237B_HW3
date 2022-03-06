@@ -29,7 +29,8 @@ class NN(tf.keras.Model):
         self.fc4 = tf.keras.layers.Dense(128, activation="elu", kernel_initializer="glorot_normal")
         self.fc5 = tf.keras.layers.Dense(256, activation="elu", kernel_initializer="glorot_normal")
         self.fc6 = tf.keras.layers.Dense(256, activation="elu", kernel_initializer="glorot_normal")
-        self.fc7 = tf.keras.layers.Dense(out_size + tril_size, kernel_initializer=tfk.initializers.random_normal(stddev=1e-3))
+        self.fc7 = tf.keras.layers.Dense(out_size + tril_size,
+                                         kernel_initializer=tf.keras.initializers.random_normal(stddev=1e-3))
         
         
         ########## Your code ends here ##########
