@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 import numpy as np
 import gym_carlo
@@ -6,6 +7,8 @@ import time
 import argparse
 from gym_carlo.envs.interactive_controllers import KeyboardController
 from scipy.stats import multivariate_normal
+from tensorflow_probability import bijectors as tfb
+from tensorflow_probability import distributions as tfd
 from train_ildist import NN
 from utils import *
 
@@ -58,7 +61,18 @@ if __name__ == '__main__':
             # - max_steering and max_throttle are the constraints, i.e. np.abs(a_robot[0]) <= max_steering and np.abs(a_robot[1]) <= max_throttle must be satisfied.
             # At the end, your code should set a_robot variable as a 1x2 numpy array that consists of steering and throttle values, respectively
             # HINT: You can use np.clip to threshold a_robot with respect to the magnitude constraints
+            p_g = np.mean(scores[-20:], axis=0)
+            # print(p_g)
+            a_robot = np.zeros((1, 2))
+            nn_value = {}
+            for i, goal in enumerate(goals[scenario_name]):
+                nn_value[goal] = nn_models[goal](obs)
+                a_human_exp = nn_value[goal][:, :2].numpy()
+                a_robot += p_g[i] * (optimal_action[goal] - a_human_exp)
 
+            # apply thresholding
+            threshold = np.array([max_steering, max_throttle])
+            a_robot[0] = np.clip(a_robot[0], -threshold, threshold)
 
 
             ########## Your code ends here ##########
@@ -76,7 +90,14 @@ if __name__ == '__main__':
             # At the end, your code should set probs variable as a 1 x |G| numpy array that consists of the probability of each goal under obs and a_human
             # HINT: This should be very similar to the part in intent_inference.py 
 
-
+            probs = np.zeros(len(goals[scenario_name]))
+            for i, goal in enumerate(goals[scenario_name]):
+                mu = outputs[goal][:, :2]
+                l = outputs[goal][:, 2:]
+                scale_tril = tfb.FillScaleTriL().forward(l)
+                dist = tfd.MultivariateNormalTriL(mu, scale_tril)
+                probs[i] = dist.prob(a_human).numpy()[0]
+            probs = probs[np.newaxis] / np.sum(probs)
 
             ########## Your code ends here ##########
 
