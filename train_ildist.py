@@ -70,7 +70,7 @@ def loss(y_est, y):
     tril_flat = y_est[:, 2:]
     tril = tfb.FillScaleTriL().forward(tril_flat)
 
-    dist = tfd.MultivariateNormalTriL(mu, tril)
+    dist = tfd.MultivariateNormalTriL(mu, tril + 1e-3 * tf.eye(2))
     return tf.reduce_mean(-dist.log_prob(y))
     
     ########## Your code ends here ##########
