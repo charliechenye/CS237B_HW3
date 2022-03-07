@@ -63,23 +63,25 @@ class NN(tf.keras.Model):
         ########## Your code ends here ##########
 
 
-def loss(y_est, y):
+def loss(y_est, y, steering_dim=0, throttle_dim=1):
     y = tf.cast(y, dtype=tf.float32)
     ######### Your code starts here #########
     # We want to compute the loss between y_est and y where
-    # - y_est is the output of the network for a batch of observations & goals,
-    # - y is the actions the expert took for the corresponding batch of observations & goals
+    # - y_est is the output of the network for a batch of observations,
+    # - y is the actions the expert took for the corresponding batch of observations
     # At the end your code should return the scalar loss value.
     # HINT: Remember, you can penalize steering (0th dimension) and throttle (1st dimension) unequally
+    steering_weight = 3e3
+    throttle_weight = 1
 
     action_losses = tf.reduce_mean(tf.square(y_est - y), axis=0)
 
-    steering_loss = action_losses[0]
-    throttle_loss = action_losses[1]
+    steering_loss = action_losses[steering_dim]
+    throttle_loss = action_losses[throttle_dim]
 
-    return 3e3 * steering_loss + throttle_loss
-
+    return steering_weight * steering_loss + throttle_weight * throttle_loss
     ########## Your code ends here ##########
+
 
 
 def nn(data, args):
