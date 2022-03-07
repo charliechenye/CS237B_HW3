@@ -26,7 +26,7 @@ class NN(tf.keras.Model):
         # self.dropout2 = tf.keras.layers.Dropout(0.1)
         self.dense3 = tf.keras.layers.Dense(5, activation="relu", kernel_initializer="he_normal")
         self.bn3 = tf.keras.layers.BatchNormalization()
-        self.dense4 = tf.keras.layers.Dense(out_size, kernel_initializer=initializer)
+        self.dense4 = tf.keras.layers.Dense(out_size, kernel_initializer="he_normal")
         # self.bn3 = tf.keras.layers.BatchNormalization()
         ########## Your code ends here ##########
 
