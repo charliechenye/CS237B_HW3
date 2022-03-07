@@ -4,6 +4,8 @@ import gym_carlo
 import gym
 import time
 import argparse
+from tensorflow_probability import bijectors as tfb
+from tensorflow_probability import distributions as tfd
 from gym_carlo.envs.interactive_controllers import KeyboardController
 from scipy.stats import multivariate_normal
 from train_ildist import NN
