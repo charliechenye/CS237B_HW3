@@ -18,16 +18,15 @@ class NN(tf.keras.Model):
         #         - tf.keras.initializers.GlorotUniform (this is what we tried)
         #         - tf.keras.initializers.GlorotNormal
         #         - tf.keras.initializers.he_uniform or tf.keras.initializers.he_normal
-        self.in_size = in_size
-        self.out_size = out_size
-
-        self.fc1 = tf.keras.layers.Dense(64, activation="relu", kernel_initializer="he_normal")
-        self.fc2 = tf.keras.layers.Dense(64, activation="relu", kernel_initializer="he_normal")
-        self.fc3 = tf.keras.layers.Dense(128, activation="relu", kernel_initializer="he_normal")
-        self.fc4 = tf.keras.layers.Dense(128, activation="relu", kernel_initializer="he_normal")
-        self.fc5 = tf.keras.layers.Dense(256, activation="relu", kernel_initializer="he_normal")
-        self.fc6 = tf.keras.layers.Dense(256, activation="relu", kernel_initializer="he_normal")
-        self.fc7 = tf.keras.layers.Dense(out_size)
+        initializer = tf.keras.initializers.he_normal()
+        self.dense1 = tf.keras.layers.Dense(9, activation="relu", kernel_initializer=initializer)
+        self.bn1 = tf.keras.layers.BatchNormalization()
+        # self.dropout1 = tf.keras.layers.Dropout(0.1)
+        self.dense2 = tf.keras.layers.Dense(5, activation="relu", kernel_initializer=initializer)
+        self.bn2 = tf.keras.layers.BatchNormalization()
+        # self.dropout2 = tf.keras.layers.Dropout(0.1)
+        self.dense3 = tf.keras.layers.Dense(out_size, kernel_initializer=initializer)
+        # self.bn3 = tf.keras.layers.BatchNormalization()
         ########## Your code ends here ##########
 
     def call(self, x):
@@ -35,19 +34,15 @@ class NN(tf.keras.Model):
         ######### Your code starts here #########
         # We want to perform a forward-pass of the network. Using the weights and biases, this function should give the network output for x where:
         # x is a (?,|O|) tensor that keeps a batch of observations
-        x = self.fc1(x)
-        x = self.fc2(x)
-        x = self.fc3(x)
-        x = self.fc4(x)
-        x = self.fc5(x)
-        x = self.fc6(x)
-        x = self.fc7(x)
+        out1 = self.bn1(self.dense1(x))
+        out2 = self.bn2(self.dense2(out1))
+        out3 = self.dense3(out2)
 
-        return x
+        return out3
         ########## Your code ends here ##########
 
 
-def loss(y_est, y, steer_dimension=0, throttle_dimension=1):
+def loss(y_est, y, steering_dim=0, throttle_dimension=1):
     y = tf.cast(y, dtype=tf.float32)
     ######### Your code starts here #########
     # We want to compute the loss between y_est and y where
@@ -57,12 +52,12 @@ def loss(y_est, y, steer_dimension=0, throttle_dimension=1):
     # HINT: Remember, you can penalize steering (0th dimension) and throttle (1st dimension) unequally
     steering_weight = 1e3
     throttle_weight = 1
-    action_losses = tf.reduce_mean(tf.square(y_est - y), axis=0)
+    l = steering_weight * tf.nn.l2_loss((tf.gather(y, [steering_dim], axis=1)
+                                         - tf.gather(y_est, [steering_dim], axis=1)))
+    l += throttle_weight * tf.nn.l2_loss(tf.gather(y, [throttle_dim], axis=1)
+                                         - tf.gather(y_est, [throttle_dim], axis=1))
 
-    steering_loss = action_losses[steer_dimension]
-    throttle_loss = action_losses[throttle_dimension]
-
-    return steering_weight * steering_loss + throttle_weight * throttle_loss
+    return l
     ########## Your code ends here ##########
 
 
@@ -92,11 +87,12 @@ def nn(data, args):
         # 3. Based on the loss calculate the gradient for all weights
         # 4. Run an optimization step on the weights.
         # Helpful Functions: tf.GradientTape(), tf.GradientTape.gradient(), tf.keras.Optimizer.apply_gradients
-        with tf.GradientTape() as tape:
-            y_est = nn_model(x)
+        with tf.GradientTape() as g:
+            g.watch(nn_model.trainable_variables)
+            y_est = nn_model.call(x)
             current_loss = loss(y_est, y)
 
-        grads = tape.gradient(current_loss, nn_model.trainable_variables)
+        grads = g.gradient(current_loss, nn_model.trainable_variables)
         optimizer.apply_gradients(zip(grads, nn_model.trainable_variables))
         ########## Your code ends here ##########
 
