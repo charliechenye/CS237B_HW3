@@ -18,14 +18,15 @@ class NN(tf.keras.Model):
         #         - tf.keras.initializers.GlorotUniform (this is what we tried)
         #         - tf.keras.initializers.GlorotNormal
         #         - tf.keras.initializers.he_uniform or tf.keras.initializers.he_normal
-        initializer = tf.keras.initializers.he_normal()
-        self.dense1 = tf.keras.layers.Dense(9, activation="relu", kernel_initializer=initializer)
+        self.dense1 = tf.keras.layers.Dense(in_size, activation="relu", kernel_initializer="he_normal")
         self.bn1 = tf.keras.layers.BatchNormalization()
         # self.dropout1 = tf.keras.layers.Dropout(0.1)
-        self.dense2 = tf.keras.layers.Dense(5, activation="relu", kernel_initializer=initializer)
+        self.dense2 = tf.keras.layers.Dense(9, activation="relu", kernel_initializer="he_normal")
         self.bn2 = tf.keras.layers.BatchNormalization()
         # self.dropout2 = tf.keras.layers.Dropout(0.1)
-        self.dense3 = tf.keras.layers.Dense(out_size, kernel_initializer=initializer)
+        self.dense3 = tf.keras.layers.Dense(5, activation="relu", kernel_initializer="he_normal")
+        self.bn3 = tf.keras.layers.BatchNormalization()
+        self.dense4 = tf.keras.layers.Dense(out_size, kernel_initializer=initializer)
         # self.bn3 = tf.keras.layers.BatchNormalization()
         ########## Your code ends here ##########
 
@@ -36,7 +37,8 @@ class NN(tf.keras.Model):
         # x is a (?,|O|) tensor that keeps a batch of observations
         out1 = self.bn1(self.dense1(x))
         out2 = self.bn2(self.dense2(out1))
-        out3 = self.dense3(out2)
+        out3 = self.bn3(self.dense2(out2))
+        out4 = self.dense4(out3)
 
         return out3
         ########## Your code ends here ##########
@@ -50,7 +52,7 @@ def loss(y_est, y, steering_dim=0, throttle_dim=1):
     # - y is the actions the expert took for the corresponding batch of observations
     # At the end your code should return the scalar loss value.
     # HINT: Remember, you can penalize steering (0th dimension) and throttle (1st dimension) unequally
-    steering_weight = 1e3
+    steering_weight = 1e2
     throttle_weight = 1
 
     action_losses = tf.reduce_mean(tf.square(y_est - y), axis=0)
