@@ -56,7 +56,15 @@ if __name__ == '__main__':
             # - action (1 x 2 numpy array) is the current action the user took when the observation is obs
             # The code should set a variable called "probs" which is list keeping the probabilities associated with goals[scenario_name], respectively.
             # HINT: multivariate_normal from scipy.stats might be useful, which is already imported. Or you can implement it yourself, too.
-
+            probs = np.zeros(len(goals[scenario_name]))
+            for i, goal in enumerate(goals[scenario_name]):
+                nn_output = nn_models[goal](obs)
+                mu = nn_output[:, :2]
+                l = nn_output[:, 2:]
+                scale_tril = tfb.FillScaleTriL().forward(l)
+                dist = tfd.MultivariateNormalTriL(mu, scale_tril)
+                probs[i] = dist.prob(action).numpy()[0]
+            probs = probs / np.sum(probs)
 
             ########## Your code ends here ##########
             
