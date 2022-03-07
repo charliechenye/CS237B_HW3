@@ -52,12 +52,13 @@ def loss(y_est, y, steering_dim=0, throttle_dim=1):
     # HINT: Remember, you can penalize steering (0th dimension) and throttle (1st dimension) unequally
     steering_weight = 1e3
     throttle_weight = 1
-    l = steering_weight * tf.nn.l2_loss((tf.gather(y, [steering_dim], axis=1)
-                                         - tf.gather(y_est, [steering_dim], axis=1)))
-    l += throttle_weight * tf.nn.l2_loss(tf.gather(y, [throttle_dim], axis=1)
-                                         - tf.gather(y_est, [throttle_dim], axis=1))
 
-    return l
+    action_losses = tf.reduce_mean(tf.square(y_est - y), axis=0)
+
+    steering_loss = action_losses[steering_dim]
+    throttle_loss = action_losses[throttle_dim]
+
+    return steering_weight * steering_loss + throttle_weight * throttle_loss
     ########## Your code ends here ##########
 
 
