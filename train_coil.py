@@ -1,6 +1,5 @@
 import numpy as np
 import tensorflow as tf
-import tensorflow.keras as tfk
 import argparse
 from utils import *
 
@@ -19,16 +18,16 @@ class NN(tf.keras.Model):
         #         - tf.keras.initializers.GlorotNormal
         #         - tf.keras.initializers.he_uniform or tf.keras.initializers.he_normal
 
-        self.fc1 = tfk.layers.Dense(64, activation="relu", kernel_initializer="he_normal")
-        self.fc2 = tfk.layers.Dense(64, activation="relu", kernel_initializer="he_normal")
-        self.fc3 = tfk.layers.Dense(128, activation="relu", kernel_initializer="he_normal")
-        self.fc4 = tfk.layers.Dense(128, activation="relu", kernel_initializer="he_normal")
-        self.fc5 = tfk.layers.Dense(256, activation="relu", kernel_initializer="he_normal")
-        self.fc6 = tfk.layers.Dense(256, activation="relu", kernel_initializer="he_normal")
+        self.fc1 = tf.keras.layers.Dense(64, activation="relu", kernel_initializer="he_normal")
+        self.fc2 = tf.keras.layers.Dense(64, activation="relu", kernel_initializer="he_normal")
+        self.fc3 = tf.keras.layers.Dense(128, activation="relu", kernel_initializer="he_normal")
+        self.fc4 = tf.keras.layers.Dense(128, activation="relu", kernel_initializer="he_normal")
+        self.fc5 = tf.keras.layers.Dense(256, activation="relu", kernel_initializer="he_normal")
+        self.fc6 = tf.keras.layers.Dense(256, activation="relu", kernel_initializer="he_normal")
 
-        self.left = tfk.layers.Dense(out_size)
-        self.straight = tfk.layers.Dense(out_size)
-        self.right = tfk.layers.Dense(out_size)
+        self.fc_left = tf.keras.layers.Dense(out_size)
+        self.fc_straight = tf.keras.layers.Dense(out_size)
+        self.fc_right = tf.keras.layers.Dense(out_size)
 
         ########## Your code ends here ##########
 
@@ -50,20 +49,20 @@ class NN(tf.keras.Model):
         x = self.fc5(x)
         x = self.fc6(x)
 
-        left = self.left(x)
-        straight = self.straight(x)
-        right = self.right(x)
+        out_left = self.fc_left(x)
+        out_straight = self.fc_straight(x)
+        out_right = self.fc_right(x)
 
         is_left = tf.cast(u == 0, tf.float32)
         is_straight = tf.cast(u == 1, tf.float32)
         is_right = tf.cast(u == 2, tf.float32)
 
-        return left * is_left + straight * is_straight + right * is_right
+        return out_left * is_left + out_straight * is_straight + out_right * is_right
 
         ########## Your code ends here ##########
 
 
-def loss(y_est, y):
+def loss(y_est, y, steering_dim=0, throttle_dim=1):
     y = tf.cast(y, dtype=tf.float32)
     ######### Your code starts here #########
     # We want to compute the loss between y_est and y where
@@ -71,13 +70,15 @@ def loss(y_est, y):
     # - y is the actions the expert took for the corresponding batch of observations & goals
     # At the end your code should return the scalar loss value.
     # HINT: Remember, you can penalize steering (0th dimension) and throttle (1st dimension) unequally
+    steering_weight = 3e3
+    throttle_weight = 1
 
     action_losses = tf.reduce_mean(tf.square(y_est - y), axis=0)
 
-    steering_loss = action_losses[0]
-    throttle_loss = action_losses[1]
+    steering_loss = action_losses[steering_dim]
+    throttle_loss = action_losses[throttle_dim]
 
-    return 3e3 * steering_loss + throttle_loss
+    return steering_weight * steering_loss + throttle_weight * throttle_loss
 
     ########## Your code ends here ##########
 
@@ -110,6 +111,7 @@ def nn(data, args):
         # Helpful Functions: tf.GradientTape(), tf.GradientTape.gradient(), tf.keras.Optimizer.apply_gradients
 
         with tf.GradientTape() as tape:
+            tape.watch(nn_model.trainable_variables)
             y_est = nn_model(x, u)
             current_loss = loss(y_est, y)
 
