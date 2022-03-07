@@ -18,15 +18,13 @@ class NN(tf.keras.Model):
         #         - tf.keras.initializers.GlorotUniform (this is what we tried)
         #         - tf.keras.initializers.GlorotNormal
         #         - tf.keras.initializers.he_uniform or tf.keras.initializers.he_normal
-        initializer = tf.keras.initializers.he_normal()
-        self.dense1 = tf.keras.layers.Dense(9, activation="relu", kernel_initializer=initializer)
-        self.bn1 = tf.keras.layers.BatchNormalization()
-        # self.dropout1 = tf.keras.layers.Dropout(0.1)
-        self.dense2 = tf.keras.layers.Dense(5, activation="relu", kernel_initializer=initializer)
-        self.bn2 = tf.keras.layers.BatchNormalization()
-        # self.dropout2 = tf.keras.layers.Dropout(0.1)
-        self.dense3 = tf.keras.layers.Dense(out_size, kernel_initializer=initializer)
-        # self.bn3 = tf.keras.layers.BatchNormalization()
+        self.fc1 = tf.keras.layers.Dense(64, activation="relu", kernel_initializer="he_normal")
+        self.fc2 = tf.keras.layers.Dense(64, activation="relu", kernel_initializer="he_normal")
+        self.fc3 = tf.keras.layers.Dense(128, activation="relu", kernel_initializer="he_normal")
+        self.fc4 = tf.keras.layers.Dense(128, activation="relu", kernel_initializer="he_normal")
+        self.fc5 = tf.keras.layers.Dense(256, activation="relu", kernel_initializer="he_normal")
+        self.fc6 = tf.keras.layers.Dense(256, activation="relu", kernel_initializer="he_normal")
+        self.fc7 = tf.keras.layers.Dense(out_size)
         ########## Your code ends here ##########
 
     def call(self, x):
@@ -34,11 +32,15 @@ class NN(tf.keras.Model):
         ######### Your code starts here #########
         # We want to perform a forward-pass of the network. Using the weights and biases, this function should give the network output for x where:
         # x is a (?,|O|) tensor that keeps a batch of observations
-        out1 = self.bn1(self.dense1(x))
-        out2 = self.bn2(self.dense2(out1))
-        out3 = self.dense3(out2)
+        x = self.fc1(x)
+        x = self.fc2(x)
+        x = self.fc3(x)
+        x = self.fc4(x)
+        x = self.fc5(x)
+        x = self.fc6(x)
+        out = self.fc7(x)
 
-        return out3
+        return out
         ########## Your code ends here ##########
 
 
