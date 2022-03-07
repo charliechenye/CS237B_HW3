@@ -92,8 +92,8 @@ if __name__ == '__main__':
 
             probs = np.zeros(len(goals[scenario_name]))
             for i, goal in enumerate(goals[scenario_name]):
-                mu = outputs[goal][:, :2]
-                l = outputs[goal][:, 2:]
+                mu = nn_value[goal][:, :2]
+                l = nn_value[goal][:, 2:]
                 scale_tril = tfb.FillScaleTriL().forward(l)
                 dist = tfd.MultivariateNormalTriL(mu, scale_tril)
                 probs[i] = dist.prob(a_human).numpy()[0]
