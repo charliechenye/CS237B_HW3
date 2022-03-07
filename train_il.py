@@ -42,7 +42,7 @@ class NN(tf.keras.Model):
         ########## Your code ends here ##########
 
 
-def loss(y_est, y, steering_dim=0, throttle_dimension=1):
+def loss(y_est, y, steering_dim=0, throttle_dim=1):
     y = tf.cast(y, dtype=tf.float32)
     ######### Your code starts here #########
     # We want to compute the loss between y_est and y where
