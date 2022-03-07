@@ -108,7 +108,7 @@ def nn(data, args):
         # Helpful Functions: tf.GradientTape(), tf.GradientTape.gradient(), tf.keras.Optimizer.apply_gradients
         with tf.GradientTape() as g:
             g.watch(nn_model.trainable_variables)
-            y_est = nn_model.call(x)
+            y_est = nn_model.call(x, u)
             current_loss = loss(y_est, y)
 
         grads = g.gradient(current_loss, nn_model.trainable_variables)
